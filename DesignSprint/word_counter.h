@@ -6,6 +6,13 @@
 #include <vector>
 #include <boost/thread.hpp>
 
+/*
+JOEL REGI ABRAHAM
+Parallel Computing Techniques
+CSCN73000 - Fall 2024 - Section 2
+Design Sprint
+*/
+
 class WordCounter {
 public:
     WordCounter(const std::string& filename);

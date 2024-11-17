@@ -8,6 +8,14 @@
 
 WordCounter::WordCounter(const std::string& filename) : m_filename(filename) {}
 
+
+/*
+JOEL REGI ABRAHAM
+Parallel Computing Techniques
+CSCN73000 - Fall 2024 - Section 2
+Design Sprint
+*/
+
 void WordCounter::countWords() {
     // Read the entire file content
     std::ifstream file(m_filename);
