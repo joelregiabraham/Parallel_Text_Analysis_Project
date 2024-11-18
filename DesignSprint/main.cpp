@@ -14,9 +14,9 @@ int main() {
     const std::string filename = "Hamlet.txt";
     WordCounter counter(filename);
 
-    
+
     counter.countWords();
-    
+
     counter.printResults();
 
     return 0;

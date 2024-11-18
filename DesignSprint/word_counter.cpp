@@ -5,8 +5,7 @@
 #include <sstream>
 #include <algorithm>
 #include <boost/thread.hpp>
-
-WordCounter::WordCounter(const std::string& filename) : m_filename(filename) {}
+#include <boost/algorithm/string.hpp>
 
 
 /*
@@ -15,6 +14,9 @@ Parallel Computing Techniques
 CSCN73000 - Fall 2024 - Section 2
 Design Sprint
 */
+
+
+WordCounter::WordCounter(const std::string& filename) : m_filename(filename) {}
 
 void WordCounter::countWords() {
     // Read the entire file content
@@ -28,32 +30,46 @@ void WordCounter::countWords() {
     // Divide the content into chunks
     std::vector<std::string> chunks = divideFileIntoChunks(content, NUM_THREADS);
 
-    // Create and launch threads
+    // Step 1: Count specific words
     boost::thread_group threads;
     for (const auto& chunk : chunks) {
-        threads.create_thread(boost::bind(&WordCounter::processChunk, this, chunk));
+        threads.create_thread(boost::bind(&WordCounter::countSpecificWords, this, chunk));
     }
-
-    // Wait for all threads to complete
     threads.join_all();
+
+    // Step 2: Count total words using Thread Pool
+    boost::asio::thread_pool pool(NUM_THREADS);
+    for (const auto& chunk : chunks) {
+        boost::asio::post(pool, boost::bind(&WordCounter::countTotalWords, this, chunk));
+    }
+    pool.join();
 }
 
-void WordCounter::processChunk(const std::string& chunk) {
+void WordCounter::countSpecificWords(const std::string& chunk) {
     std::istringstream iss(chunk);
     std::string word;
     while (iss >> word) {
-        // Convert word to lowercase for case-insensitive comparison
-        std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+        // Remove punctuation and convert to lowercase
+        std::string clean_word = boost::algorithm::to_lower_copy(word);
+        boost::algorithm::trim_if(clean_word, boost::is_any_of(".,!?:;\"'()[]{}"));
 
-        if (word == "horatio") m_horatioCount++;
-        else if (word == "and") m_andCount++;
-        else if (word == "hamlet") m_hamletCount++;
-        else if (word == "god") m_godCount++;
-
-        m_totalWordCount++;
+        if (clean_word == "horatio") m_horatioCount++;
+        else if (clean_word == "and") m_andCount++;
+        else if (clean_word == "hamlet") m_hamletCount++;
+        else if (clean_word == "god") m_godCount++;
     }
 }
 
+void WordCounter::countTotalWords(const std::string& chunk) {
+    std::istringstream iss(chunk);
+    std::string word;
+    while (iss >> word) {
+        // Count any non-empty string as a word
+        if (!word.empty()) {
+            m_totalWordCount++;
+        }
+    }
+}
 std::vector<std::string> WordCounter::divideFileIntoChunks(const std::string& content, int numChunks) {
     std::vector<std::string> chunks;
     size_t chunkSize = content.size() / numChunks;

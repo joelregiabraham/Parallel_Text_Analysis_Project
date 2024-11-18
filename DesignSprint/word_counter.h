@@ -3,8 +3,7 @@
 
 #include <string>
 #include <atomic>
-#include <vector>
-#include <boost/thread.hpp>
+#include <boost/asio.hpp>
 
 /*
 JOEL REGI ABRAHAM
@@ -20,7 +19,8 @@ public:
     void printResults() const;
 
 private:
-    void processChunk(const std::string& chunk);
+    void countSpecificWords(const std::string& chunk);
+    void countTotalWords(const std::string& chunk);
     std::vector<std::string> divideFileIntoChunks(const std::string& content, int numChunks);
 
     std::string m_filename;
